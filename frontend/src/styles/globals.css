@@ -1,0 +1,68 @@
+:root {
+  /* Backgrounds */
+  --bg-primary:    #0D1117;   /* Main dark */
+  --bg-secondary:  #161B22;   /* Cards, sidebar */
+  --bg-tertiary:   #1C2128;   /* Table rows, inputs */
+  --bg-hover:      #21262D;
+
+  /* Accent */
+  --accent:        #00D4FF;   /* Primary cyan */
+  --accent-dim:    #0A7A99;
+  --accent-glow:   rgba(0,212,255,0.15);
+
+  /* Severity */
+  --critical:      #FF3D3D;   /* Critical — Red */
+  --high:          #FF8C00;   /* High — Orange */
+  --medium:        #FFD700;   /* Medium — Yellow */
+  --low:           #4A90D9;   /* Low — Blue */
+  --fp:            #00C851;   /* False Positive — Green */
+
+  /* Text */
+  --text-primary:  #F0F6FC;
+  --text-secondary:#8B949E;
+  --font-mono:     'Consolas', 'Courier New', monospace;
+
+  /* Effects */
+  --border:        #30363D;
+  --shadow:        0 4px 24px rgba(0,0,0,0.5);
+  --glow-critical: 0 0 12px rgba(255,61,61,0.4);
+  --glow-accent:   0 0 12px rgba(0,212,255,0.3);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
