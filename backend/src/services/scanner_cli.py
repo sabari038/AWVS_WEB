@@ -9,7 +9,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 # Append the original scanner directory so we can import its modules
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SCANNER_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "..", "..", "Vulnerabilty_Scanner"))
+SCANNER_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "scanner_core"))
 
 if SCANNER_DIR not in sys.path:
     sys.path.append(SCANNER_DIR)
@@ -58,14 +58,35 @@ def main():
         # Merge for CVE lookup
         merged_info = {**sys_scan, **win_details}
 
+        # Define parameters based on scan type
+        if scan_type == "FAST":
+            target_ports = [21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 445, 3306, 3389, 8080]
+            max_kw = 5
+            res_per_kw = 5
+        elif scan_type == "WEB":
+            target_ports = [80, 443, 8080, 8443, 8000, 3000, 5000]
+            max_kw = 8
+            res_per_kw = 8
+        else: # DEEP
+            # Top ~100 ports for a deeper scan without taking hours
+            target_ports = [
+                20, 21, 22, 23, 25, 53, 67, 68, 69, 80, 110, 111, 123, 135, 137, 138, 139, 143, 161, 162, 
+                389, 443, 445, 465, 500, 514, 515, 587, 631, 636, 873, 993, 995, 1080, 1099, 1194, 1433, 
+                1434, 1521, 1723, 1883, 2049, 2181, 3128, 3306, 3389, 3690, 4333, 4848, 5000, 5432, 5900, 
+                5984, 5985, 5986, 6379, 7001, 8000, 8080, 8081, 8443, 8500, 8888, 9000, 9042, 9092, 9200, 
+                9300, 10000, 11211, 27017, 27018, 50000 
+            ]
+            max_kw = 15
+            res_per_kw = 15
+
         # 3. Network Scan
-        print(json.dumps({"log": f"Running Network Port Scan against {target_ip}..."}))
-        net_scan = NetworkScanner(target=target_ip).scan()
+        print(json.dumps({"log": f"Running Network Port Scan against {target_ip} with {len(target_ports)} ports..."}))
+        net_scan = NetworkScanner(target=target_ip, ports=target_ports).scan()
         
         # 4. Vulnerability Lookup
-        print(json.dumps({"log": "Mapping components to CVE database..."}))
+        print(json.dumps({"log": f"Mapping up to {max_kw} components to CVE database... (Max {res_per_kw} results each)"}))
         vscanner = VulnerabilityScanner()
-        vuln_data = vscanner.fetch_cves(system_info=merged_info, max_keywords=8, results_per_keyword=8)
+        vuln_data = vscanner.fetch_cves(system_info=merged_info, max_keywords=max_kw, results_per_keyword=res_per_kw)
 
         # Normalize severities
         seen = set()

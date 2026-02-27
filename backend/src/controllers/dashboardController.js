@@ -7,8 +7,8 @@ const getDashboardStats = (req, res) => {
 
     const totalAssets = assets.length;
     const totalVulns = vulns.length;
-    const critical = vulns.filter(v => v.severity === 'Critical' || v.severity === 'High').length;
-    const high = vulns.filter(v => v.severity === 'High' || v.severity === 'Medium').length;
+    const critical = vulns.filter(v => v.severity && v.severity.toUpperCase() === 'CRITICAL').length;
+    const high = vulns.filter(v => v.severity && v.severity.toUpperCase() === 'HIGH').length;
     const fpSuppressed = fpDecisions.filter(d => d.decision === 'false_positive').length;
 
     let maxRisk = 0;

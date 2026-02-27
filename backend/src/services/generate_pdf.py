@@ -3,7 +3,7 @@ import json
 import os
 
 # Add Vulnerabilty_Scanner to path
-scanner_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../Vulnerabilty_Scanner'))
+scanner_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'scanner_core'))
 sys.path.append(os.path.join(scanner_dir, 'reports'))
 
 try:
