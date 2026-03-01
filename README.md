@@ -14,6 +14,12 @@ A professional, enterprise-grade vulnerability management web application built 
 
 ## Installation
 
+First, clone the repository to your local machine:
+```bash
+git clone https://github.com/sabari038/AWVS_WEB.git
+cd AWVS_WEB/web
+```
+
 You need to install dependencies for both the frontend and backend separately.
 
 ### 1. Backend Setup
@@ -22,11 +28,15 @@ You need to install dependencies for both the frontend and backend separately.
    ```bash
    cd backend
    ```
-2. Install the necessary NPM packages:
+2. Install the necessary NPM packages for the Node.js server:
    ```bash
    npm install
    ```
-3. Create a `.env` file in the `backend` directory (if not already present) with your configuration:
+3. Install the required Python dependencies for the scanning engine and PDF generator:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Create a `.env` file in the `backend` directory (if not already present) with your configuration:
    ```env
    PORT=3001
    ```

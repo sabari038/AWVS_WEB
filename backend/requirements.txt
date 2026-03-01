@@ -1,0 +1,4 @@
+requests
+wmi
+reportlab
+psutil
