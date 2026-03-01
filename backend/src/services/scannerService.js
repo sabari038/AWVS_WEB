@@ -23,24 +23,33 @@ const runScan = (scanId, target, type) => {
 
     let resultData = null;
 
-    child.stdout.on('data', (data) => {
-        const lines = data.toString().split('\n').filter(l => l.trim() !== '');
+    let outputBuffer = '';
 
-        for (const line of lines) {
-            try {
-                const parsed = JSON.parse(line);
-                if (parsed.log) {
-                    logs.push(`[${new Date().toISOString()}] ${parsed.log}`);
-                    if (scan.progress < 90) scan.progress += 5; // increment progress bar
-                } else if (parsed.type === 'results') {
-                    resultData = parsed;
-                } else if (parsed.error) {
-                    logs.push(`[${new Date().toISOString()}] ERROR: ${parsed.error}`);
+    child.stdout.on('data', (data) => {
+        outputBuffer += data.toString();
+
+        let boundary = outputBuffer.indexOf('\n');
+        while (boundary !== -1) {
+            const line = outputBuffer.substring(0, boundary).trim();
+            outputBuffer = outputBuffer.substring(boundary + 1);
+
+            if (line !== '') {
+                try {
+                    const parsed = JSON.parse(line);
+                    if (parsed.log) {
+                        logs.push(`[${new Date().toISOString()}] ${parsed.log}`);
+                        if (scan.progress < 90) scan.progress += 5; // increment progress bar
+                    } else if (parsed.type === 'results') {
+                        resultData = parsed;
+                    } else if (parsed.error) {
+                        logs.push(`[${new Date().toISOString()}] ERROR: ${parsed.error}`);
+                    }
+                } catch (e) {
+                    // If not JSON, just log as raw stdout
+                    logs.push(`[${new Date().toISOString()}] ${line}`);
                 }
-            } catch (e) {
-                // If not JSON, just log as raw stdout
-                logs.push(`[${new Date().toISOString()}] ${line}`);
             }
+            boundary = outputBuffer.indexOf('\n');
         }
     });
 

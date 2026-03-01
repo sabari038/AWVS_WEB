@@ -1,0 +1,8 @@
+============================================================
+     CYBERSEC VULNERABILITY ANALYZER
+============================================================
+Enter target IP / Hostname (default: 127.0.0.1): Choose an option:
+1. FAST Scan (15 ports, max 5 system components)
+2. DEEP Scan (84 ports, robust exhaustive CVE/CVSS lookup)
+============================================================
+Enter choice [1/2]: Invalid choice! Exiting...

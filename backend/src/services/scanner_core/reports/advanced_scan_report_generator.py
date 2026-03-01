@@ -38,7 +38,10 @@ class AdvancedScanReportGenerator:
         if isinstance(content, dict):
             data = [["Key", "Value"]]
             for k, v in content.items():
-                wrapped_text = "<br/>".join(wrap(str(v), 100))
+                v_str = str(v)
+                if len(v_str) > 2000:
+                    v_str = v_str[:2000] + "... [TRUNCATED FOR PDF]"
+                wrapped_text = "<br/>".join(wrap(v_str, 100))
                 data.append([str(k), Paragraph(wrapped_text, self.normal_style)])
             table = Table(data, colWidths=[2.2 * inch, 4.5 * inch])
 
@@ -50,20 +53,26 @@ class AdvancedScanReportGenerator:
                 headers = list(content[0].keys())
                 data = [headers]
                 for row in content:
-                    data.append([
-                        Paragraph("<br/>".join(wrap(str(row.get(h, "")), 50)), self.normal_style)
-                        for h in headers
-                    ])
+                    row_data = []
+                    for h in headers:
+                        val = str(row.get(h, ""))
+                        if len(val) > 1000: val = val[:1000] + "..."
+                        row_data.append(Paragraph("<br/>".join(wrap(val, 50)), self.normal_style))
+                    data.append(row_data)
                 col_width = 7.2 / len(headers)
                 table = Table(data, colWidths=[col_width * inch] * len(headers))
             else:
                 data = [["Value"]]
                 for item in content:
-                    wrapped = "<br/>".join(wrap(str(item), 100))
+                    v_str = str(item)
+                    if len(v_str) > 2000: v_str = v_str[:2000] + "..."
+                    wrapped = "<br/>".join(wrap(v_str, 100))
                     data.append([Paragraph(wrapped, self.normal_style)])
                 table = Table(data, colWidths=[6.8 * inch])
         else:
-            data = [["Value"], [Paragraph("<br/>".join(wrap(str(content), 100)), self.normal_style)]]
+            v_str = str(content)
+            if len(v_str) > 2000: v_str = v_str[:2000] + "..."
+            data = [["Value"], [Paragraph("<br/>".join(wrap(v_str, 100)), self.normal_style)]]
             table = Table(data, colWidths=[6.8 * inch])
 
         table.setStyle(TableStyle([

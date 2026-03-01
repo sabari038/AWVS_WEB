@@ -45,18 +45,27 @@ def main():
     print(json.dumps({"log": f"Starting {scan_type} scan on {target_ip}..."}))
 
     try:
-        # 1. System Info
-        print(json.dumps({"log": "Initializing System Scanner..."}))
-        sys_scan = SystemScanner().scan()
-        print(json.dumps({"log": "OS and Hardware Details Collected."}))
+        # Check if local scan
+        is_local = target_ip in ["127.0.0.1", "localhost", "::1"]
+        merged_info = {}
 
-        # 2. Window Details (installed software, hotfixes)
-        print(json.dumps({"log": "Querying Windows WMI for installed patches and software..."}))
-        win_details = collect_windows_details()
-        print(json.dumps({"log": "Windows Details Collected."}))
+        if is_local:
+            # 1. System Info
+            print(json.dumps({"log": "Initializing System Scanner (Local)..."}))
+            sys_scan = SystemScanner().scan()
+            print(json.dumps({"log": "OS and Hardware Details Collected."}))
 
-        # Merge for CVE lookup
-        merged_info = {**sys_scan, **win_details}
+            # 2. Window Details (installed software, hotfixes)
+            print(json.dumps({"log": "Querying Windows WMI for installed patches and software..."}))
+            win_details = collect_windows_details()
+            print(json.dumps({"log": "Windows Details Collected."}))
+
+            # Merge for CVE lookup
+            merged_info = {**sys_scan, **win_details}
+        else:
+            print(json.dumps({"log": "Remote target detected. Skipping local WMI/PowerShell execution."}))
+            # Still provide an 'OS' placeholder so it doesn't crash downstream expectation
+            merged_info = {"OS": {"WindowsProductName": "Remote System"}}
 
         # Define parameters based on scan type
         if scan_type == "FAST":
@@ -86,7 +95,7 @@ def main():
         # 4. Vulnerability Lookup
         print(json.dumps({"log": f"Mapping up to {max_kw} components to CVE database... (Max {res_per_kw} results each)"}))
         vscanner = VulnerabilityScanner()
-        vuln_data = vscanner.fetch_cves(system_info=merged_info, max_keywords=max_kw, results_per_keyword=res_per_kw)
+        vuln_data = vscanner.fetch_cves(target=target_ip, system_info=merged_info, max_keywords=max_kw, results_per_keyword=res_per_kw)
 
         # Normalize severities
         seen = set()

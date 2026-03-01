@@ -52,97 +52,76 @@ def collect_windows_details():
 
 
 # ============================================================
-# QUICK SCAN
+# FAST SCAN (Option 1)
 # ============================================================
-def quick_scan():
-    print("[*] Running Quick Scan...")
-    sys_scan = SystemScanner().scan()
-    net_scan = NetworkScanner(target="127.0.0.1").scan()
+def quick_scan(target_ip):
+    print(f"\n[*] Running FAST Scan against {target_ip}...")
+    
+    is_local = target_ip in ["127.0.0.1", "localhost", "::1"]
+    merged_info = {}
 
-    report = ReportGenerator("vulnerability_report.pdf")
-    report.add_section("System Information", sys_scan.get("Basic Information"))
-    report.add_section("CPU", sys_scan.get("CPU"))
-    report.add_section("Memory", sys_scan.get("Memory"))
-    report.add_section("Disk", sys_scan.get("Disk"))
-    report.add_section("Running Processes", sys_scan.get("Running Processes"))
-    report.add_section("Installed Hotfixes", sys_scan.get("Installed Hotfixes"))
-    report.add_section(".NET Versions", sys_scan.get(".NET Versions"))
-    report.add_section("Antivirus", sys_scan.get("Antivirus"))
-    report.add_section("Firewall Status", sys_scan.get("Firewall Status"))
-    report.add_section("Users and Groups", sys_scan.get("Users and Groups"))
-    report.add_section("Network Scan - TCP", net_scan.get("open_tcp_ports"))
-    report.add_section("TCP Banners", net_scan.get("tcp_banners"))
-    report.add_section("UDP Services", net_scan.get("open_udp_services"))
-    report.add_section("ARP Table", net_scan.get("arp_table"))
-    report.add_section("DNS Cache", net_scan.get("dns_cache"))
-    report.add_section("Network Interfaces", net_scan.get("network_interfaces"))
-    report.add_section("Network Shares", net_scan.get("network_shares"))
-    report.add_section("RPC Endpoints", net_scan.get("rpc_endpoints"))
+    if is_local:
+        sys_scan = SystemScanner().scan()
+        win_details = collect_windows_details()
+        merged_info = {**sys_scan, **win_details}
+    else:
+        print("[*] Remote target. Skipping local WMI queries.")
+        merged_info = {"OS": {"WindowsProductName": "Remote System"}}
 
-    try:
-        image_path = build_network_map()
-        report.add_image(image_path, "Discovered Network Topology")
-    except Exception as e:
-        print(f"[!] Network map generation failed: {e}")
+    target_ports = [21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 445, 3306, 3389, 8080]
+    print(f"[*] Scanning top {len(target_ports)} ports...")
+    net_scan = NetworkScanner(target=target_ip, ports=target_ports).scan()
 
-    report.build()
-    print("[+] Quick Scan completed. Report saved as vulnerability_report.pdf")
-
-
-# ============================================================
-# ADVANCED SCAN — System-Aware CVE + CVSS Lookup
-# ============================================================
-def advanced_scan():
-    print("\n[*] Running Advanced Scan (System-aware CVE/CVSS lookup)...")
-
-    sys_scan = SystemScanner().scan()
-    net_scan = NetworkScanner(target="127.0.0.1").scan()
-    win_details = collect_windows_details()
-
-    # Merge all data
-    merged_info = {**sys_scan, **win_details}
-
-    print("[*] Preparing targeted CVE lookup using your actual system details...")
+    print(f"[*] Fetching CVEs (Fast Mode: 5 components, max 5 results each)...")
     vscanner = VulnerabilityScanner()
+    vuln_data = vscanner.fetch_cves(target=target_ip, system_info=merged_info, max_keywords=5, results_per_keyword=5)
 
-    MAX_RUNTIME = 120  # 2 minutes
+
+# ============================================================
+# DEEP SCAN (Option 2) — System-Aware CVE + CVSS Lookup
+# ============================================================
+def advanced_scan(target_ip):
+    print(f"\n[*] Running DEEP Scan against {target_ip}...")
+
+    is_local = target_ip in ["127.0.0.1", "localhost", "::1"]
+    merged_info = {}
+
+    if is_local:
+        sys_scan = SystemScanner().scan()
+        win_details = collect_windows_details()
+        merged_info = {**sys_scan, **win_details}
+        print("[*] System details and local software collected.")
+    else:
+        print("[*] Remote target. Skipping local WMI queries.")
+        sys_scan = {"Basic Information": {"os": "Unknown Remote", "ip_address": target_ip}}
+        win_details = {}
+        merged_info = {"OS": {"WindowsProductName": "Remote System"}}
+
+    # Top ~80 ports for DEEP scan
+    target_ports = [
+        20, 21, 22, 23, 25, 53, 67, 68, 69, 80, 110, 111, 123, 135, 137, 138, 139, 143, 161, 162, 
+        389, 443, 445, 465, 500, 514, 515, 587, 631, 636, 873, 993, 995, 1080, 1099, 1194, 1433, 
+        1434, 1521, 1723, 1883, 2049, 2181, 3128, 3306, 3389, 3690, 4333, 4848, 5000, 5432, 5900, 
+        5984, 5985, 5986, 6379, 7001, 8000, 8080, 8081, 8443, 8500, 8888, 9000, 9042, 9092, 9200, 
+        9300, 10000, 11211, 27017, 27018, 50000 
+    ]
+    
+    print(f"[*] Scanning comprehensive {len(target_ports)} ports...")
+    net_scan = NetworkScanner(target=target_ip, ports=target_ports).scan()
+
+    print(f"[*] Exhaustive CVE Lookup (Deep Mode: 15 components, max 15 results each)...")
+    vscanner = VulnerabilityScanner()
+    
+    MAX_RUNTIME = 300  # 5 minutes
     start_time = time.time()
-
-    def time_exceeded():
-        return (time.time() - start_time) >= MAX_RUNTIME
-
-    # Prepare keywords from system data
-    keywords = []
-    try:
-        os_name = merged_info.get("OS", {}).get("WindowsProductName", "")
-        version = merged_info.get("OS", {}).get("WindowsVersion", "")
-        build = merged_info.get("OS", {}).get("OsBuildNumber", "")
-        software_list = merged_info.get("Installed Software", [])
-
-        # Collect top keywords
-        keywords.append(os_name)
-        keywords.append(f"Windows {version}")
-        keywords.append(f"Build {build}")
-
-        if isinstance(software_list, list):
-            keywords.extend(software_list[:5])  # Limit to 5 software for focused lookup
-
-        # Remove blanks and duplicates
-        keywords = [k for k in keywords if k and k not in ("N/A", "Unknown")]
-        keywords = list(dict.fromkeys(keywords))
-
-    except Exception as e:
-        print(f"[!] Failed to prepare keywords: {e}")
-
-    print(f"[*] Searching CVEs for keywords: {keywords[:8]}")
 
     vuln_data = []
     try:
-        vuln_data = vscanner.fetch_cves(system_info=merged_info, max_keywords=8, results_per_keyword=8)
+        vuln_data = vscanner.fetch_cves(target=target_ip, system_info=merged_info, max_keywords=15, results_per_keyword=15)
     except Exception as e:
         print(f"[!] CVE fetch failed: {e}")
 
-    if time_exceeded():
+    if (time.time() - start_time) >= MAX_RUNTIME:
         print("[!] Time limit reached — partial CVE data collected.")
 
     # ============================================================
@@ -219,16 +198,21 @@ if __name__ == "__main__":
     print("=" * 60)
     print("     CYBERSEC VULNERABILITY ANALYZER")
     print("=" * 60)
+    
+    target = input("Enter target IP / Hostname (default: 127.0.0.1): ").strip()
+    if not target:
+        target = "127.0.0.1"
+        
     print("Choose an option:")
-    print("1. Quick Scan  (System + Network)")
-    print("2. Advanced Scan (System-aware CVE/CVSS lookup, 2-min limit)")
+    print("1. FAST Scan (15 ports, max 5 system components)")
+    print("2. DEEP Scan (84 ports, robust exhaustive CVE/CVSS lookup)")
     print("=" * 60)
 
     choice = input("Enter choice [1/2]: ").strip()
 
     if choice == "1":
-        quick_scan()
+        quick_scan(target)
     elif choice == "2":
-        advanced_scan()
+        advanced_scan(target)
     else:
         print("Invalid choice! Exiting...")
