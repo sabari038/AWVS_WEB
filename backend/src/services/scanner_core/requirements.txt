@@ -1,0 +1,9 @@
+wmi
+psutil
+networkx
+matplotlib
+reportlab
+requests
+python-nmap
+pandas
+flask

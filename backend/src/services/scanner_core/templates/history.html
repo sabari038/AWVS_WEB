@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>📜 Scan History</h2>
+    <p style="color: var(--text-muted);">View records of your previous vulnerability assessments.</p>
+
+    {% if history %}
+    <table class="result-table" style="margin-top: 1rem;">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Scan Type</th>
+                <th>Target</th>
+                <th>Items Found</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in history %}
+            <tr>
+                <td>{{ item.timestamp }}</td>
+                <td><span
+                        style="text-transform: capitalize; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; font-size: 0.8em;">{{
+                        item.type }}</span></td>
+                <td>{{ item.target }}</td>
+                <td>{{ item.count }}</td>
+                <td>
+                    <!-- Re-using the report generation route but we might need to store the data properly to re-download. 
+                         For now, we just show a static button or link if available. -->
+                    <span style="color: var(--text-muted); font-size: 0.8em;">Saved</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+        <p>No scan history found.</p>
+        <a href="/" style="color: var(--primary);">Start a new scan</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

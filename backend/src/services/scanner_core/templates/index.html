@@ -1,0 +1,188 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="dashboard-grid">
+
+    <!-- 1. Host Discovery -->
+    <div class="card">
+        <h2>📡 Host Discovery</h2>
+        <p style="color: var(--text-muted);">Find active devices on your local network.</p>
+        <form id="hostForm"
+            onsubmit="event.preventDefault(); runScanV4('/scan/host', 'hostForm', 'hostResult', 'host')">
+            <div class="form-group">
+                <label>Target Subnet</label>
+                <input type="text" name="target" value="192.168.1.0/24">
+            </div>
+            <button type="submit">Scan Network</button>
+            <div class="spinner"></div>
+        </form>
+        <div id="hostResult" class="result-container"></div>
+    </div>
+
+    <!-- 2. Network Scan -->
+    <div class="card">
+        <h2>🌐 Port Scanner</h2>
+        <p style="color: var(--text-muted);">Check for open ports and services.</p>
+        <form id="netForm"
+            onsubmit="event.preventDefault(); runScanV4('/scan/network', 'netForm', 'netResult', 'network')">
+            <div class="form-group">
+                <label>Target IP</label>
+                <input type="text" name="target" value="127.0.0.1">
+            </div>
+            <div class="form-group">
+                <label>Scan Intensity</label>
+                <select name="type">
+                    <option value="quick">Quick (Top 20 Ports)</option>
+                    <option value="full">Full (1-1000)</option>
+                </select>
+            </div>
+            <button type="submit">Scan Ports</button>
+            <div class="spinner"></div>
+        </form>
+        <div id="netResult" class="result-container"></div>
+    </div>
+
+    <!-- 3. Web Scan -->
+    <div class="card">
+        <h2>🌍 Web Analyzer</h2>
+        <p style="color: var(--text-muted);">Security header & SSL inspection.</p>
+        <form id="webForm" onsubmit="event.preventDefault(); runScanV4('/scan/web', 'webForm', 'webResult', 'web')">
+            <div class="form-group">
+                <label>Target URL</label>
+                <input type="text" name="url" placeholder="example.com">
+            </div>
+            <button type="submit">Analyze URL</button>
+            <div class="spinner"></div>
+        </form>
+        <div id="webResult" class="result-container"></div>
+    </div>
+
+    <!-- 4. Audit Scan -->
+    <div class="card">
+        <h2>📋 System Audit</h2>
+        <p style="color: var(--text-muted);">Local policy compliance check.</p>
+        <form id="auditForm"
+            onsubmit="event.preventDefault(); runScanV4('/scan/audit', 'auditForm', 'auditResult', 'audit')">
+            <div class="form-group">
+                <label>Admin User (Optional)</label>
+                <input type="text" name="username">
+            </div>
+            <button type="submit">Run Audit</button>
+            <div class="spinner"></div>
+        </form>
+        <div id="auditResult" class="result-container"></div>
+    </div>
+</div>
+
+<!-- Advanced Scan (Full Width) -->
+<div class="card" style="margin-top: 2rem;">
+    <h2>🚀 Advanced Vulnerability Suite</h2>
+    <p style="color: var(--text-muted);">Combined Network + System + CVE Analysis.</p>
+    <form id="advForm"
+        onsubmit="event.preventDefault(); runScanV4('/scan/advanced', 'advForm', 'advResult', 'advanced')">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label>Target IP</label>
+                <input type="text" name="target" value="127.0.0.1">
+            </div>
+            <div class="form-group">
+                <label>WMI User (Optional)</label>
+                <input type="text" name="username" placeholder="DOMAIN\User">
+            </div>
+        </div>
+        <button type="submit">Start Comprehensive Scan</button>
+        <div class="spinner"></div>
+    </form>
+    <div id="advResult" class="result-container"></div>
+</div>
+
+<script>
+    // RENAMED TO V4 TO BUST CACHE
+    async function runScanV4(endpoint, formId, resultId, scanType) {
+        const form = document.getElementById(formId);
+        const resultDiv = document.getElementById(resultId);
+        const spinner = form.querySelector('.spinner');
+
+        spinner.style.display = 'block';
+        resultDiv.classList.remove('active');
+        resultDiv.innerHTML = ''; // Clear previous
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            console.log("Data received:", data); // DEBUG LOG
+
+            // 1. Build Visual HTML Table (User requested removal)
+            // let html = buildHtmlTable(data);
+            let html = '';
+
+            // 2. Append Download Button
+            html += `
+                <div style="margin: 1.5rem 0 1rem 0;">
+                    <a href="/report/${scanType}" target="_blank" class="btn-download" style="text-decoration: none; color: white; display: inline-flex; width: auto; padding: 0.75rem 1.5rem; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                        <span style="font-size: 1.2rem;">⬇️</span> <span style="font-weight: bold; margin-left: 8px;">Download PDF Report</span>
+                    </a>
+                </div>
+            `;
+
+            // 3. Append Raw JSON (Requested Feature) - FORCED DISPLAY
+            html += `
+                <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; background: #111; padding: 15px; border-radius: 8px;">
+                    <h3 style="font-size: 1rem; color: #0f0; margin-bottom: 0.5rem; font-family: monospace;">> RAW_JSON_OUTPUT</h3>
+                    <div class="json-dump" style="max-height: 400px; overflow-y: auto;">
+                        <pre style="color: #a5b4fc; font-family: monospace; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+
+            resultDiv.innerHTML = html;
+            resultDiv.classList.add('active');
+
+        } catch (error) {
+            console.error(error);
+            resultDiv.innerHTML = `<p style="color: var(--danger)">Error: ${error.message}</p>`;
+            resultDiv.classList.add('active');
+        } finally {
+            spinner.style.display = 'none';
+        }
+    }
+
+    function buildHtmlTable(data) {
+        if (!data || Object.keys(data).length === 0) return '<p>No results found.</p>';
+
+        if (Array.isArray(data)) {
+            if (data.length === 0) return '<p>No items found.</p>';
+            let html = '<table class="result-table"><thead><tr>';
+            const keys = Object.keys(data[0]);
+            keys.forEach(k => html += `<th>${k}</th>`);
+            html += '</tr></thead><tbody>';
+            data.forEach(item => {
+                html += '<tr>';
+                keys.forEach(k => html += `<td>${item[k]}</td>`);
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            return html;
+        }
+        else if (typeof data === 'object') {
+            let html = '<table class="result-table"><tbody>';
+            for (const [key, value] of Object.entries(data)) {
+                let displayValue = value;
+                if (typeof value === 'object') {
+                    displayValue = `<pre style="margin:0; font-family:inherit;">${JSON.stringify(value, null, 2)}</pre>`;
+                }
+                html += `<tr><td style="width: 30%"><strong>${key}</strong></td><td>${displayValue}</td></tr>`;
+            }
+            html += '</tbody></table>';
+            return html;
+        }
+        return `<p>${data}</p>`;
+    }
+</script>
+{% endblock %}

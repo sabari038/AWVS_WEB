@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2>⚙️ Settings</h2>
+    <p style="color: var(--text-muted);">Configure your scanner preferences.</p>
+
+    <form action="/settings" method="POST">
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label>Default Target IP</label>
+            <input type="text" name="default_target" value="{{ config.get('default_target', '127.0.0.1') }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label>Scan Timeout (seconds)</label>
+            <input type="number" name="timeout" value="{{ config.get('timeout', 60) }}">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label>NVD API Key (Optional)</label>
+            <input type="password" name="nvd_key" value="{{ config.get('nvd_key', '') }}"
+                placeholder="Enter API Key to increase rate limits">
+        </div>
+
+        <button type="submit">Save Configurations</button>
+    </form>
+
+    {% if message %}
+    <div
+        style="margin-top: 1rem; padding: 1rem; background: rgba(16, 185, 129, 0.2); border: 1px solid var(--success); border-radius: 8px; color: #fff;">
+        {{ message }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

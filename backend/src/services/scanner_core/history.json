@@ -1,0 +1,86 @@
+[
+    {
+        "timestamp": "2026-01-26 20:39:55",
+        "type": "advanced",
+        "target": "104.21.42.126",
+        "count": 7
+    },
+    {
+        "timestamp": "2026-01-26 20:05:10",
+        "type": "advanced",
+        "target": "192.168.0.104",
+        "count": 7
+    },
+    {
+        "timestamp": "2026-01-26 19:47:45",
+        "type": "host",
+        "target": "192.168.1.0/24",
+        "count": 0
+    },
+    {
+        "timestamp": "2026-01-26 19:46:00",
+        "type": "advanced",
+        "target": "91.108.106.35",
+        "count": 0
+    },
+    {
+        "timestamp": "2026-01-26 19:43:19",
+        "type": "advanced",
+        "target": "127.0.0.1",
+        "count": 0
+    },
+    {
+        "timestamp": "2026-01-26 18:25:10",
+        "type": "host",
+        "target": "192.168.1.0/24",
+        "count": 0
+    },
+    {
+        "timestamp": "2026-01-26 18:24:52",
+        "type": "advanced",
+        "target": "127.0.0.1",
+        "count": 6
+    },
+    {
+        "timestamp": "2026-01-26 18:24:24",
+        "type": "network",
+        "target": "127.0.0.1",
+        "count": 0
+    },
+    {
+        "timestamp": "2026-01-26 18:21:00",
+        "type": "host",
+        "target": "192.168.1.0/24",
+        "count": 0
+    },
+    {
+        "timestamp": "2026-01-26 18:20:50",
+        "type": "advanced",
+        "target": "127.0.0.1",
+        "count": 6
+    },
+    {
+        "timestamp": "2026-01-26 18:20:15",
+        "type": "network",
+        "target": "127.0.0.1",
+        "count": 0
+    },
+    {
+        "timestamp": "2026-01-26 18:14:11",
+        "type": "host",
+        "target": "192.168.1.0/24",
+        "count": 0
+    },
+    {
+        "timestamp": "2026-01-26 18:13:30",
+        "type": "advanced",
+        "target": "127.0.0.1",
+        "count": 6
+    },
+    {
+        "timestamp": "2026-01-26 18:13:07",
+        "type": "network",
+        "target": "127.0.0.1",
+        "count": 0
+    }
+]
